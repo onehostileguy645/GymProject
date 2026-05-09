@@ -10,13 +10,11 @@ class Membership {
         string membershipId;
         string userId;
         string membershipType; // "Basic", "Premium", "VIP"
-        string startDate;
-        string endDate;
         double price;
         bool isActive;
         int daysRemaining;
     public:
-    Membership(string t, string sid, double p, string s, string e) : membershipType(t), userId(sid), price(p), startDate(s), endDate(e), isActive(false), daysRemaining(0) {}
+    Membership(string t, string sid, double p, string s, string e) : membershipType(t), userId(sid), price(p), isActive(false), daysRemaining(0) {}
     
     void setMembershipId(string id) {
         membershipId = id;
@@ -41,19 +39,6 @@ class Membership {
     string getType() {
         return membershipType;
     }
-    // Getters and setters for startDate and endDate
-    void setStartDate(string s) {
-        startDate = s;
-    }
-    string getStartDate() {
-        return startDate;
-    }
-    void setEndDate(string e) {
-        endDate = e;
-    }
-    string getEndDate() {
-        return endDate;
-    }
 
     double getPrice() {
         return price;
@@ -65,8 +50,14 @@ class Membership {
         price = calculatePrice(type, durationMonths);
         isActive = true;
         // Set startDate and endDate based on current date and duration
+        daysRemaining = durationMonth*30;
     };
-    bool checkValidity() const;
+    bool checkValidity() const{
+        if isActive{
+            return true;
+        }
+        else return false;
+    };
 
     double calculatePrice(string type, int durationMonths) {
         double basePrice = 0.0;
@@ -83,9 +74,8 @@ class Membership {
     void display(){
         cout << "Membership Type: " << membershipType << endl;
         cout << "Price: $" << price << endl;
-        cout << "Start Date: " << startDate << endl;
-        cout << "End Date: " << endDate << endl;
         cout << "Status: " << (isActive ? "Active" : "Inactive") << endl;
+        cout << "Days Remaining: " << daysRemaining << endl;
     }
 
     
