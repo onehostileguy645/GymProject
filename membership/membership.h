@@ -78,6 +78,4 @@ class Membership {
         cout << "Days Remaining: " << daysRemaining << endl;
     }
 
-    
-
 }
