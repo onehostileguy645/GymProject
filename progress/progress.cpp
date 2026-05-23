@@ -5,9 +5,9 @@ using namespace std;
 
 const int MAX_PROGRESS = 500;
 
-// --- File Helpers ---
+// File stuff
 
-void initProgressFile(fstream& file) {
+void ProgressFile(fstream& file) {
     file.clear();
     file.seekp(0);
     Progress empty;
@@ -41,7 +41,7 @@ static int findFreeProgressSlot(fstream& file) {
     throw ProgressException("No free progress slots available.");
 }
 
-// --- Menu Actions ---
+// -Menu Functions
 
 void addProgressEntry(fstream& progressFile, fstream& userFile, int userId) {
     UserRecord user;
@@ -66,7 +66,7 @@ void addProgressEntry(fstream& progressFile, fstream& userFile, int userId) {
         return;
     }
 
-    double weight, calories, chest, waist, hips, biceps, thighs;
+    double weight, chest, waist, hips, biceps, thighs;
 
     cout << "\n--- Add Progress Entry ---\n";
     cout << "Weight (kg): ";
@@ -76,13 +76,6 @@ void addProgressEntry(fstream& progressFile, fstream& userFile, int userId) {
         cin  >> weight;
     }
 
-    cout << "Daily Calories (kcal): ";
-    cin  >> calories;
-    while (calories < 0) {
-        cout << "Must be non-negative. Try again: ";
-        cin  >> calories;
-    }
-
     cout << "\n-- Body Measurements (cm) --\n";
     cout << "Chest  : "; cin >> chest;
     cout << "Waist  : "; cin >> waist;
@@ -90,7 +83,7 @@ void addProgressEntry(fstream& progressFile, fstream& userFile, int userId) {
     cout << "Biceps : "; cin >> biceps;
     cout << "Thighs : "; cin >> thighs;
 
-    Progress p(pid, userId, weight, calories, chest, waist, hips, biceps, thighs);
+    Progress p(pid, userId, weight, chest, waist, hips, biceps, thighs);
     saveProgress(progressFile, p);
 
     cout << "\nProgress entry saved!\n";
@@ -128,7 +121,7 @@ void compareFirstAndLast(fstream& progressFile, int userId) {
     while (progressFile.read(reinterpret_cast<char*>(&temp), sizeof(Progress))) {
         if (temp.getProgressId() != 0 && temp.getUserId() == userId) {
             if (!foundFirst) {
-                first      = temp;
+                first = temp;
                 foundFirst = true;
             }
             last = temp;
@@ -152,7 +145,6 @@ void listAllProgress(fstream& progressFile, fstream& userFile) {
     Progress p;
     while (progressFile.read(reinterpret_cast<char*>(&p), sizeof(Progress))) {
         if (p.getProgressId() == 0) continue;
-
         UserRecord user;
         userFile.clear();
         userFile.seekg((p.getUserId() - 1) * sizeof(UserRecord), ios::beg);
@@ -167,11 +159,11 @@ void listAllProgress(fstream& progressFile, fstream& userFile) {
 int main() {
     fstream progressFile("progress.dat", ios::in | ios::out | ios::binary);
     if (!progressFile) {
-        cout << "Could not open progress file. Creating new one.\n";
+        cout<< "Could not open progress file. Creating new one.\n";
         progressFile.open("progress.dat", ios::out | ios::binary);
         progressFile.close();
         progressFile.open("progress.dat", ios::in | ios::out | ios::binary);
-        initProgressFile(progressFile);
+        ProgressFile(progressFile);
     }
 
     fstream userFile("users.dat", ios::in | ios::out | ios::binary);

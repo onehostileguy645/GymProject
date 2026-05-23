@@ -7,11 +7,7 @@
 using namespace std;
 
 class Measurements {
-    double chest;
-    double waist;
-    double hips;
-    double biceps;
-    double thighs;
+    double chest, waist, hips, biceps, thighs;
 
 public:
     measurements() : chest(0), waist(0), hips(0), biceps(0), thighs(0) {}
@@ -20,11 +16,16 @@ public:
         : chest(c), waist(w), hips(h), biceps(b), thighs(t) {}
 
     // Getters
-    double getChest()  const { return chest; }
-    double getWaist()  const { return waist; }
-    double getHips()   const { return hips; }
-    double getBiceps() const { return biceps; }
-    double getThighs() const { return thighs; }
+    double getChest() const { 
+        return chest; }
+    double getWaist() const { 
+        return waist; }
+    double getHips() const { 
+        return hips; }
+    double getBiceps() const { 
+        return biceps; }
+    double getThighs() const { 
+        return thighs; }
 
     // Setters
     void setChest(double c)  { 
@@ -66,14 +67,12 @@ public:
 
 class Progress {
     int progressId, userId;
-    double weight, calories, chest, waist, hips, biceps, thighs;
+    double weight, chest, waist, hips, biceps, thighs;
     Measurements bMeasurements;
 public:
-    Progress() : progressId(0), userId(0), weight(0), calories(0), chest(0), waist(0), hips(0), biceps(0), thighs(0), bMeasurements() {}
+    Progress() : progressId(0), userId(0), weight(0), chest(0), waist(0), hips(0), biceps(0), thighs(0), bMeasurements() {}
 
-    Progress(int pid, int uid, double w, double cal, double c, double wa, double h, double b, double t, Measurements bm)
-        : progressId(pid), userId(uid), weight(w), calories(cal), chest(c), waist(wa), hips(h), biceps(b), thighs(t), bMeasurements(bm) {    }
-        
+    Progress(int pid, int uid, double w, double c, double wa, double h, double b, double t, Measurements bm): progressId(pid), userId(uid), weight(w), chest(c), waist(wa), hips(h), biceps(b), thighs(t), bMeasurements(bm) {    }
 
     // Getters
     int getProgressId() const { 
@@ -82,20 +81,15 @@ public:
         return userId; }
     double getWeight()  const { 
         return weight; }
-    double getCalories() const { 
-        return calories; }
     Measurements getMeasurements() const { 
         return bMeasurements; }
 
     // Setters
     void setProgressId(int pid) { progressId = pid; }
-    void setUserId(int uid)     { userId = uid; }
+    void setUserId(int uid) { userId = uid; }
     void setWeight(double w)     { 
         if (w >= 0) weight = w; 
         else cout << "Invalid weight value.\n"; }
-    void setCalories(double cal) {
-        if (cal >= 0) calories = cal;
-        else cout << "Invalid calories value.\n"; }
     void setMeasurements(const Measurements& m) { bMeasurements = m; }
 
     bool operator<(const Progress& other) const {
@@ -116,17 +110,16 @@ public:
         last.display();
 
         if (first < last) {
-            cout << "\nYour weight has increased.\n";
+            cout << "\nYour weight has increased by " << calculateWeightChange(first, last) << " kg.\n";
         } else if (first > last) {
-            cout << "\nYour weight has decreased.\n";
+            cout << "\nYour weight has decreased by " << calculateWeightChange(last, first) << " kg.\n";
         } else {
             cout << "\nYour weight has remained the same.\n";
         }}
     void display() const {
         cout << "Progress ID: " << progressId << "\n"
              << "User ID: " << userId << "\n"
-             << "Weight: " << weight << " kg\n"
-             << "Calories: " << calories << " kcal\n";
+             << "Weight: " << weight << " kg\n";
         bMeasurements.display();}
 
     virtual ~Progress() {}
