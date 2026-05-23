@@ -5,41 +5,43 @@ using namespace std;
 
 const int MAX_PROGRESS = 500;
 
-void ProgressFile(fstream& file) {
+// --- File Helpers ---
+
+void initProgressFile(fstream& file) {
     file.clear();
     file.seekp(0);
-    ProgressRecord empty;
+    Progress empty;
     for (int i = 0; i < MAX_PROGRESS; i++)
-        file.write(reinterpret_cast<char*>(&empty), sizeof(ProgressRecord));
+        file.write(reinterpret_cast<const char*>(&empty), sizeof(Progress));
 }
 
 void saveProgress(fstream& file, const Progress& p) {
-    ProgressRecord rec = p.getRecord();
     file.clear();
-    file.seekp((rec.progressId - 1) * sizeof(ProgressRecord), ios::beg);
-    file.write(reinterpret_cast<const char*>(&rec), sizeof(ProgressRecord));
+    file.seekp((p.getProgressId() - 1) * sizeof(Progress), ios::beg);
+    file.write(reinterpret_cast<const char*>(&p), sizeof(Progress));
+    file.flush();
 }
 
 bool loadProgress(fstream& file, int pid, Progress& out) {
-    ProgressRecord rec;
     file.clear();
-    file.seekg((pid - 1) * sizeof(ProgressRecord), ios::beg);
-    file.read(reinterpret_cast<char*>(&rec), sizeof(ProgressRecord));
-    if (rec.progressId == 0) return false;
-    out = Progress(rec);
+    file.seekg((pid - 1) * sizeof(Progress), ios::beg);
+    file.read(reinterpret_cast<char*>(&out), sizeof(Progress));
+    if (out.getProgressId() == 0) return false;
     return true;
 }
 
 static int findFreeProgressSlot(fstream& file) {
-    ProgressRecord rec;
+    Progress temp;
     for (int i = 0; i < MAX_PROGRESS; i++) {
         file.clear();
-        file.seekg(i * sizeof(ProgressRecord), ios::beg);
-        file.read(reinterpret_cast<char*>(&rec), sizeof(ProgressRecord));
-        if (rec.progressId == 0) return i + 1; // IDs start at 1
+        file.seekg(i * sizeof(Progress), ios::beg);
+        file.read(reinterpret_cast<char*>(&temp), sizeof(Progress));
+        if (temp.getProgressId() == 0) return i + 1;
     }
     throw ProgressException("No free progress slots available.");
 }
+
+// --- Menu Actions ---
 
 void addProgressEntry(fstream& progressFile, fstream& userFile, int userId) {
     UserRecord user;
@@ -48,11 +50,11 @@ void addProgressEntry(fstream& progressFile, fstream& userFile, int userId) {
     userFile.read(reinterpret_cast<char*>(&user), sizeof(UserRecord));
 
     if (user.userId == 0) {
-        cout << "User not found." << endl;
+        cout << "User not found.\n";
         return;
     }
     if (string(user.userType) == "Admin") {
-        cout << "Admins do not have progress entries." << endl;
+        cout << "Admins do not have progress entries.\n";
         return;
     }
 
@@ -60,13 +62,13 @@ void addProgressEntry(fstream& progressFile, fstream& userFile, int userId) {
     try {
         pid = findFreeProgressSlot(progressFile);
     } catch (ProgressException& e) {
-        cout << "Error: " << e.getMessage() << endl;
+        cout << "Error: " << e.getMessage() << "\n";
         return;
     }
 
     double weight, calories, chest, waist, hips, biceps, thighs;
 
-    cout << "\n--- Add Progress Entry ---" << endl;
+    cout << "\n--- Add Progress Entry ---\n";
     cout << "Weight (kg): ";
     cin  >> weight;
     while (weight <= 0) {
@@ -81,7 +83,7 @@ void addProgressEntry(fstream& progressFile, fstream& userFile, int userId) {
         cin  >> calories;
     }
 
-    cout << "\n-- Body Measurements (cm) --" << endl;
+    cout << "\n-- Body Measurements (cm) --\n";
     cout << "Chest  : "; cin >> chest;
     cout << "Waist  : "; cin >> waist;
     cout << "Hips   : "; cin >> hips;
@@ -91,85 +93,117 @@ void addProgressEntry(fstream& progressFile, fstream& userFile, int userId) {
     Progress p(pid, userId, weight, calories, chest, waist, hips, biceps, thighs);
     saveProgress(progressFile, p);
 
-    cout << "\nProgress entry saved!" << endl;
+    cout << "\nProgress entry saved!\n";
     p.display();
 }
 
 void viewUserProgress(fstream& progressFile, int userId) {
     progressFile.clear();
     progressFile.seekg(0);
-    ProgressRecord rec;
 
     bool found = false;
-    cout << "\n--- Progress History for User #" << userId << " ---" << endl;
+    cout << "\n--- Progress History for User #" << userId << " ---\n";
 
-    while (progressFile.read(reinterpret_cast<char*>(&rec), sizeof(ProgressRecord))) {
-        if (rec.progressId != 0 && rec.userId == userId) {
-            Progress p(rec);
+    Progress p;
+    while (progressFile.read(reinterpret_cast<char*>(&p), sizeof(Progress))) {
+        if (p.getProgressId() != 0 && p.getUserId() == userId) {
             p.display();
-            cout << "-------------------" << endl;
+            cout << "-------------------\n";
             found = true;
         }
     }
 
     if (!found)
-        cout << "No progress entries found." << endl;
+        cout << "No progress entries found.\n";
 }
 
 void compareFirstAndLast(fstream& progressFile, int userId) {
     progressFile.clear();
     progressFile.seekg(0);
-    ProgressRecord rec;
 
-    ProgressRecord first, last;
+    Progress first, last;
     bool foundFirst = false;
 
-    while (progressFile.read(reinterpret_cast<char*>(&rec), sizeof(ProgressRecord))) {
-        if (rec.progressId != 0 && rec.userId == userId) {
+    Progress temp;
+    while (progressFile.read(reinterpret_cast<char*>(&temp), sizeof(Progress))) {
+        if (temp.getProgressId() != 0 && temp.getUserId() == userId) {
             if (!foundFirst) {
-                first      = rec;
+                first      = temp;
                 foundFirst = true;
             }
-            last = rec;
+            last = temp;
         }
     }
 
     if (!foundFirst) {
-        cout << "No progress entries found for User #" << userId << "." << endl;
+        cout << "No progress entries found for User #" << userId << ".\n";
         return;
     }
 
-    Progress p1(first), p2(last);
-    Progress::compareProgress(p1, p2);
-    cout << "Total weight change: " << Progress::calculateWeightChange(p1, p2) << " kg" << endl;
+    Progress::compareProgress(first, last);
+    cout << "Total weight change: " << Progress::calculateWeightChange(first, last) << " kg\n";
 }
 
 void listAllProgress(fstream& progressFile, fstream& userFile) {
     progressFile.clear();
     progressFile.seekg(0);
-    ProgressRecord rec;
 
-    cout << "\n--- All Progress Entries ---" << endl;
-    while (progressFile.read(reinterpret_cast<char*>(&rec), sizeof(ProgressRecord))) {
-        if (rec.progressId != 0) {
-            UserRecord user;
-            userFile.clear();
-            userFile.seekg((rec.userId - 1) * sizeof(UserRecord), ios::beg);
-            userFile.read(reinterpret_cast<char*>(&user), sizeof(UserRecord));
+    cout << "\n--- All Progress Entries ---\n";
+    Progress p;
+    while (progressFile.read(reinterpret_cast<char*>(&p), sizeof(Progress))) {
+        if (p.getProgressId() == 0) continue;
 
-            if (string(user.userType) == "Admin") continue;
+        UserRecord user;
+        userFile.clear();
+        userFile.seekg((p.getUserId() - 1) * sizeof(UserRecord), ios::beg);
+        userFile.read(reinterpret_cast<char*>(&user), sizeof(UserRecord));
 
-            Progress p(rec);
-            p.display();
-            cout << "-------------------" << endl;
-        }
-    }
+        if (string(user.userType) == "Admin") continue;
+
+        p.display();
+        cout << "-------------------\n";}
 }
 
-void deleteProgressEntry(fstream& progressFile, int progressId) {
-    ProgressRecord empty;
-    progressFile.clear();
-    progressFile.seekp((progressId - 1) * sizeof(ProgressRecord), ios::beg);
-    progressFile.write(reinterpret_cast<char*>(&empty), sizeof(ProgressRecord));
-    cout << "Progress entry #" << progressId << " deleted." << endl;
+int main() {
+    fstream progressFile("progress.dat", ios::in | ios::out | ios::binary);
+    if (!progressFile) {
+        cout << "Could not open progress file. Creating new one.\n";
+        progressFile.open("progress.dat", ios::out | ios::binary);
+        progressFile.close();
+        progressFile.open("progress.dat", ios::in | ios::out | ios::binary);
+        initProgressFile(progressFile);
+    }
+
+    fstream userFile("users.dat", ios::in | ios::out | ios::binary);
+    if (!userFile) {
+        cout << "Could not open user file. Exiting.\n";
+        return 1;
+    }
+    
+    int choice, userId;
+    cout << "Enter your User ID: ";
+    cin  >> userId;
+    while (true) {
+        cout << "\n--- Progress Menu ---\n"
+             << "1. Add Progress Entry\n"
+             << "2. View My Progress History\n"
+             << "3. Compare First and Last Entry\n"
+             << "4. List All Progress Entries\n"
+             << "5. Exit\n"
+             << "Choose an option: ";
+        cin  >> choice;
+
+        switch (choice) {
+            case 1: addProgressEntry(progressFile, userFile, userId); break;
+            case 2: viewUserProgress(progressFile, userId); break;
+            case 3: compareFirstAndLast(progressFile, userId); break;
+            case 4: listAllProgress(progressFile, userFile); break;
+            case 5: cout << "Goodbye!\n"; progressFile.close(); userFile.close(); return 0;
+            default: cout << "Invalid choice. Try again.\n";
+}
+    }
+
+    progressFile.close();
+    userFile.close();
+    return 0;
 }
