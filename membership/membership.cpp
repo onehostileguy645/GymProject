@@ -137,7 +137,7 @@ void showAllMemberships(fstream& memberFile, fstream& userFile) {
 }
 
 
-int main(){
+void membershipMenu(fstream& memberFile, fstream& userFile, int userId) {
     fstream memberFile("memberships.dat", ios::in | ios::out | ios::binary);
     if (!memberFile) {
         cerr << "Error opening memberships.dat" << endl;

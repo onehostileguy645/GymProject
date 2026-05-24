@@ -156,7 +156,7 @@ void listAllProgress(fstream& progressFile, fstream& userFile) {
         cout << "-------------------\n";}
 }
 
-int main() {
+void progressMenu(fstream& progressFile, fstream& userFile, int userId) {
     fstream progressFile("progress.dat", ios::in | ios::out | ios::binary);
     if (!progressFile) {
         cout<< "Could not open progress file. Creating new one.\n";
