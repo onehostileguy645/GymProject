@@ -48,4 +48,9 @@ public:
     void displayRecommendation() const;
     void displayWorkoutPlan() const;
     void displayDietPlan() const;
+
+    void saveToFile() const;
+
+    vector<Recommendation> loadAllRecommendations();
+    vector<Recommendation> loadByUserId(string userId);
 };
