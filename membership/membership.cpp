@@ -73,9 +73,9 @@ void subscribeMenu(fstream& memberFile, int userId) {
     //Listings to choose from
     //Maybe add connection with recommedation?
     cout << "Choose type:\n"
-         << "  Basic   - $30/mo | 2 times per week gym access, group classes, locker rooms.\n"
-         << "  Premium - $50/mo | 3 times per week gym access, pool, sauna, workout recommendations.\n"
-         << "  VIP     - $80/mo | Unlimited access + personalized plans & nutrition.\n"
+         << "  Basic - $30/mo \n 2 times per week gym access, group classes, locker rooms.\n"
+         << "  \nPremium - $50/mo \n 3 times per week gym access, pool, sauna, workout recommendations.\n"
+         << "  \nVIP - $80/mo \n Unlimited access + personalized plans & nutrition.\n"
          << "Enter Basic, Premium, or VIP: ";
     cin  >> type;
     while (type != "Basic" && type != "Premium" && type != "VIP") {
@@ -137,7 +137,7 @@ void showAllMemberships(fstream& memberFile, fstream& userFile) {
 }
 
 
-int main(){
+void membershipMenu(fstream& memberFile, fstream& userFile, int userId) {
     fstream memberFile("memberships.dat", ios::in | ios::out | ios::binary);
     if (!memberFile) {
         cerr << "Error opening memberships.dat" << endl;
